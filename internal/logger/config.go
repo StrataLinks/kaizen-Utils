@@ -1,27 +1,37 @@
 package logger
 
-import "encoding/json"
-import "os"
+import (
+	"encoding/json"
+	"io/ioutil"
+	"sync"
+)
 
-// Config defines the structure for logging configuration.
+// Config struct for the logger.
 type Config struct {
-	LogLevel string `json:"logLevel"`
+	LogLevel LogLevel `json:"logLevel"`
 }
 
+var (
+	config     *Config
+	configLock = new(sync.RWMutex)
+)
+
 // LoadConfig reads and parses the configuration from a JSON file.
-func LoadConfig(path string) (*Config, error) {
-	file, err := os.Open(path)
+func LoadConfig(path string) error {
+	data, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	decoder := json.NewDecoder(file)
-	config := &Config{}
-	err = decoder.Decode(config)
-	if err != nil {
-		return nil, err
+		return err
 	}
 
-	return config, nil
+	configLock.Lock()
+	defer configLock.Unlock()
+
+	return json.Unmarshal(data, &config)
+}
+
+// GetConfig safely retrieves the current logging configuration.
+func GetConfig() *Config {
+	configLock.RLock()
+	defer configLock.RUnlock()
+	return config
 }

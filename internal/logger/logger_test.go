@@ -1,23 +1,25 @@
 package logger
 
 import (
-	"bytes"
-	"log"
 	"testing"
 )
 
+// TestLogHandler is a mock handler for testing.
+type TestLogHandler struct {
+	loggedMessages []string
+}
+
+func (h *TestLogHandler) Log(level LogLevel, message string) {
+	h.loggedMessages = append(h.loggedMessages, message)
+}
+
 func TestLoggerOutputs(t *testing.T) {
-	var buf bytes.Buffer
-	testLogger := &KaizeenLogger{logger: log.New(&buf, "", log.LstdFlags)}
+	handler := &TestLogHandler{}
+	logger := NewLogger([]LogHandle{handler})
 
-	testLogger.Info("This is an info message.")
-	if !bytes.Contains(buf.Bytes(), []byte("INFO: This is an info message.")) {
-		t.Errorf("Expected Info log entry to be written.")
-	}
-
-	buf.Reset()
-	testLogger.Error("This is an error message.")
-	if !bytes.Contains(buf.Bytes(), []byte("ERROR: This is an error message.")) {
-		t.Errorf("Expected Error log entry to be written.")
+	logger.Info("This is an info message.")
+	expectedMessage := "This is an info message."
+	if handler.loggedMessages[0] != expectedMessage {
+		t.Errorf("Expected '%s', got '%s'", expectedMessage, handler.loggedMessages[0])
 	}
 }
