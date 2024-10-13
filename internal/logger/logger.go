@@ -13,6 +13,21 @@ const (
 	ErrorLevel
 )
 
+func (level LogLevel) String() string {
+	switch level {
+	case DebugLevel:
+		return "DEBUG"
+	case InfoLevel:
+		return "INFO"
+	case WarnLevel:
+		return "WARN"
+	case ErrorLevel:
+		return "ERROR"
+	default:
+		return "UNKNOWN"
+	}
+}
+
 type LogHandle interface {
 	Log(level LogLevel, message string)
 }
